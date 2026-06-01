@@ -93,7 +93,7 @@ class RandomCharacterPicker:
                 "seed": ("INT", {
                     "default": 0,
                     "min": 0,
-                    "max": 0xFFFFFFFF,
+                    "max": 0xFFFFFFFFFFFFFFFF,
                     "tooltip": "Random seed. Set widget to 'randomize' for auto-change each run.",
                 }),
             },
