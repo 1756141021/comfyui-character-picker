@@ -98,6 +98,45 @@ Restart ComfyUI. The node appears as **Random Character Picker** in the `charact
 - Source: [Danbooru](https://danbooru.donmai.us/) + [deepghs/site_tags](https://huggingface.co/datasets/deepghs/site_tags)
 - Scraped: 2026-05-31
 
+### CSV Format / CSV 格式
+
+You can edit `data/characters.csv` to add/remove characters. Format:
+
+可以直接编辑 `data/characters.csv` 增删角色。格式：
+
+| Column | Description | Example |
+|--------|-------------|---------|
+| `danbooru_tag` | Danbooru tag (underscores, parentheses) | `bremerton_(scorching-hot_training)_(azur_lane)` |
+| `base_tag` | Base character tag (without skin/variant) | `bremerton_(azur_lane)` |
+| `is_variant` | `1` = skin/variant, `0` = base character | `1` |
+| `franchise` | Franchise name (used for pool grouping) | `碧蓝航线` |
+| `post_count` | Danbooru post count (for filtering) | `1711` |
+
+```csv
+danbooru_tag,base_tag,is_variant,franchise,post_count
+bremerton_(azur_lane),bremerton_(azur_lane),0,碧蓝航线,5343
+bremerton_(scorching-hot_training)_(azur_lane),bremerton_(azur_lane),1,碧蓝航线,1711
+gotoh_hitori,gotoh_hitori,0,孤独摇滚,17227
+```
+
+**Rules / 规则：**
+
+- Base character: `is_variant=0`, `base_tag` = `danbooru_tag`
+- Variant/skin: `is_variant=1`, `base_tag` = the base character's tag
+- Picking a variant outputs both variant + base + copyright tags
+- Picking a base outputs base + copyright tag
+- `franchise` must match `_FRANCHISE_TO_COPYRIGHT` in the node code (or add new entries there)
+- Restart ComfyUI after editing
+
+---
+
+- 本体：`is_variant=0`，`base_tag` 和 `danbooru_tag` 相同
+- 变体/皮肤：`is_variant=1`，`base_tag` 填本体的 tag
+- 抽到变体会同时输出 变体 + 本体 + 版权标签
+- 抽到本体会输出 本体 + 版权标签
+- `franchise` 需要和节点代码里的 `_FRANCHISE_TO_COPYRIGHT` 映射表对应（新增作品需要在那里加一条）
+- 编辑后重启 ComfyUI 生效
+
 ## License
 
 MIT
