@@ -8,8 +8,6 @@ _DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 _DB_PATH = os.path.join(_DATA_DIR, "characters.csv")
 
 _FRANCHISE_TO_COPYRIGHT = {
-    "原神": "genshin_impact",
-    "星穹铁道": "honkai:_star_rail",
     "绝区零": "zenless_zone_zero",
     "鸣潮": "wuthering_waves",
     "明日方舟": "arknights",
@@ -163,7 +161,9 @@ class RandomCharacterPicker:
             for c in characters:
                 franchise_groups.setdefault(c["franchise"], []).append(c)
             chosen_franchise = rng.choice(list(franchise_groups.keys()))
-            char = rng.choice(franchise_groups[chosen_franchise])
+            group = franchise_groups[chosen_franchise]
+            weights = [max(1, c["post_count"]) for c in group]
+            char = rng.choices(group, weights=weights, k=1)[0]
 
         base_prompt = _tag_to_prompt(char["base_tag"])
         franchise = char["franchise"]
