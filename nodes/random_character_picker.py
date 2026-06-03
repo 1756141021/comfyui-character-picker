@@ -104,6 +104,10 @@ class RandomCharacterPicker:
                     "default": "",
                     "tooltip": "Pick a specific character (specify mode). Fuzzy match on danbooru_tag.",
                 }),
+                "weighted": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "Weight by Danbooru post count. On: popular characters appear more often. Off: equal chance.",
+                }),
             },
         }
 
@@ -122,7 +126,7 @@ class RandomCharacterPicker:
     def IS_CHANGED(cls, **kwargs):
         return float("NaN")
 
-    def pick(self, franchise_pool, seed, mode="random", character_name=""):
+    def pick(self, franchise_pool, seed, mode="random", character_name="", weighted=True):
         if isinstance(franchise_pool, str):
             try:
                 pool_data = json.loads(franchise_pool)
@@ -162,8 +166,11 @@ class RandomCharacterPicker:
                 franchise_groups.setdefault(c["franchise"], []).append(c)
             chosen_franchise = rng.choice(list(franchise_groups.keys()))
             group = franchise_groups[chosen_franchise]
-            weights = [max(1, c["post_count"]) for c in group]
-            char = rng.choices(group, weights=weights, k=1)[0]
+            if weighted:
+                weights = [max(1, c["post_count"]) for c in group]
+                char = rng.choices(group, weights=weights, k=1)[0]
+            else:
+                char = rng.choice(group)
 
         base_prompt = _tag_to_prompt(char["base_tag"])
         franchise = char["franchise"]
