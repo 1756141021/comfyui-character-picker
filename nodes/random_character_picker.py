@@ -167,8 +167,16 @@ class RandomCharacterPicker:
             chosen_franchise = rng.choice(list(franchise_groups.keys()))
             group = franchise_groups[chosen_franchise]
             if weighted:
-                weights = [max(1, c["post_count"]) for c in group]
-                char = rng.choices(group, weights=weights, k=1)[0]
+                base_groups = {}
+                for c in group:
+                    base_groups.setdefault(c["base_tag"], []).append(c)
+                base_weights = [
+                    sum(max(1, c["post_count"]) for c in members)
+                    for members in base_groups.values()
+                ]
+                chosen_base = rng.choices(list(base_groups.values()), weights=base_weights, k=1)[0]
+                variant_weights = [max(1, c["post_count"]) for c in chosen_base]
+                char = rng.choices(chosen_base, weights=variant_weights, k=1)[0]
             else:
                 char = rng.choice(group)
 
