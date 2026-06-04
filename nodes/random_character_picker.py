@@ -108,6 +108,19 @@ class RandomCharacterPicker:
                     "default": True,
                     "tooltip": "Weight by Danbooru post count. On: popular characters appear more often. Off: equal chance.",
                 }),
+                "min_posts": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": 100000,
+                    "step": 100,
+                    "tooltip": "Filter out characters with fewer total posts (base + variants). 0 = no filter.",
+                }),
+                "top_n": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": 1000,
+                    "tooltip": "Keep only top N characters per franchise by post count. 0 = no limit.",
+                }),
             },
         }
 
@@ -126,7 +139,7 @@ class RandomCharacterPicker:
     def IS_CHANGED(cls, **kwargs):
         return float("NaN")
 
-    def pick(self, franchise_pool, seed, mode="random", character_name="", weighted=True):
+    def pick(self, franchise_pool, seed, mode="random", character_name="", weighted=True, min_posts=0, top_n=0):
         if isinstance(franchise_pool, str):
             try:
                 pool_data = json.loads(franchise_pool)
@@ -144,6 +157,30 @@ class RandomCharacterPicker:
             return ("", "", "", "")
 
         characters = [c for c in _ALL_CHARACTERS if c["franchise"] in active_franchises]
+        if not characters:
+            return ("", "", "", "")
+
+        if min_posts > 0 or top_n > 0:
+            base_totals = {}
+            for c in characters:
+                base_totals[c["base_tag"]] = base_totals.get(c["base_tag"], 0) + c["post_count"]
+
+            if min_posts > 0:
+                good_bases = {b for b, total in base_totals.items() if total >= min_posts}
+                characters = [c for c in characters if c["base_tag"] in good_bases]
+
+            if top_n > 0:
+                fr_bases = {}
+                for c in characters:
+                    if not c["is_variant"]:
+                        fr_bases.setdefault(c["franchise"], []).append((c["base_tag"], base_totals.get(c["base_tag"], 0)))
+                allowed = set()
+                for fr, bases in fr_bases.items():
+                    bases.sort(key=lambda x: -x[1])
+                    for tag, _ in bases[:top_n]:
+                        allowed.add((tag, fr))
+                characters = [c for c in characters if (c["base_tag"], c["franchise"]) in allowed]
+
         if not characters:
             return ("", "", "", "")
 
